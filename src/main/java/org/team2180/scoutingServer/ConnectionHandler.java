@@ -1,6 +1,8 @@
 package org.team2180.scoutingServer;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -39,17 +41,19 @@ public class ConnectionHandler implements Runnable {
 			System.out.println("Server: Found a friend in '"+remDev.getFriendlyName(true)+"' @ "+remDev.getBluetoothAddress());
 			OutputStream out = connection.openOutputStream();
 			InputStream in = connection.openInputStream();
-			PrintWriter pWriter = new PrintWriter(new OutputStreamWriter(out));
-			BufferedReader bReader = new BufferedReader(new InputStreamReader(in)); 
+			DataOutputStream oS = new DataOutputStream(out);
+			DataInputStream iS = new DataInputStream(in); 
 				
 			int handshake = in.read();
 			if(handshake==1) {
 				System.out.println(deviceIndex+" will now inform you of TOP SECRET_INFO");
-				updateDatabase(remDev, pWriter, bReader);
-				System.out.println(deviceIndex+" >\n"+ TEAM_DATA.getJSONObject(deviceIndex).getInt("entryCount"));
+				updateDatabase(remDev, oS, iS);
+				int entryCount = TEAM_DATA.getJSONObject(deviceIndex).getInt("entryCount");
+				System.out.println(deviceIndex+" >\n"+ entryCount +"; "+Boolean.toString(TEAM_DATA.getJSONObject(deviceIndex).get((entryCount-1)+"")!=null));
 			}else if(handshake==2) {
 				System.out.println(deviceIndex+" would like to copy your notes");
-				updateDevice(remDev, pWriter, bReader);
+				updateDevice(remDev, oS, iS);
+				connection.close();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -57,17 +61,53 @@ public class ConnectionHandler implements Runnable {
 			try {connection.close();} catch (IOException e1) {e1.printStackTrace();}
 			return;
 		}
-		System.out.println(deviceIndex+"'s thread is terminating!");
+		System.out.println(deviceIndex+"'s thread is terminating!\n-----------------------------------------");
 		return;
 	}
+
+	public void updateDevice(RemoteDevice remDev, DataOutputStream oS, DataInputStream iS) throws Exception {
+		Iterator<?> deviceKeys = TEAM_DATA.keys();
+		while(deviceKeys.hasNext()) {
+			String devKey = (String)deviceKeys.next();
+			int devEntryCount = (int)TEAM_DATA.getJSONObject(deviceIndex).getInt("entryCount");
+			int i = 0;
+			System.out.println(deviceIndex+" is now getting"+devKey+"'s stored data");
+			while(i < devEntryCount) {
+					oS.writeUTF(TEAM_DATA.getJSONObject(devKey).getString(i+""));
+					oS.flush();
+					System.out.println(TEAM_DATA.getJSONObject(devKey).getString(i+""));
+					int remReady = iS.readInt();//hangs here
+					if(remReady != 2) {
+						connection.close();
+						throw new Exception(deviceIndex+" has refused the data at: "+devKey+'['+i+']'+"; responded with:"+remReady);
+					}else{
+						System.out.println(deviceIndex+" has been sent new data!");
+					}
+					try {
+						TEAM_DATA.getJSONObject(devKey).getString((i+1)+"");
+						oS.writeInt(2);
+						System.out.println(deviceIndex+": found more info in "+devKey);
+					}catch(JSONException e) {
+						oS.writeInt(1);
+						System.out.println(deviceIndex+": no more info in "+devKey);
+					}
+					i++;
+					oS.flush();
+			}
+		}
+		oS.writeInt(0);//send term signal
+		oS.close();
+		System.out.println(deviceIndex+" is informed!");
+		connection.close();
+	}
 	
-	public void updateDatabase(RemoteDevice remDev, PrintWriter ex, BufferedReader in) throws IOException, JSONException {
+	public void updateDatabase(RemoteDevice remDev, DataOutputStream oS, DataInputStream iS) throws IOException, JSONException {
 		//OK!
-		ex.write(1);
-		ex.flush();
-		char[] charData = new char[8192];
+		oS.write(1);
+		oS.flush();
+		byte[] charData = new byte[8192];
 		
-		in.read(charData);
+		iS.read(charData);
 		String data = new String(charData);
 		
 		connection.close();
@@ -90,23 +130,25 @@ public class ConnectionHandler implements Runnable {
 		}
 		
 		int i = 0;
-		while(i<deviceLocalTable.getInt("entryCount")){
 			//Make sure we don't have duplicates!
-			String jsonText = (String)deviceLocalTable.get(i+"");
-			if(jsonText.equals(data)) {
-				//Don't save duplicates!
-				System.out.println(deviceIndex+"NOC");
-				return;
+		Iterator<?> deviceKeys = TEAM_DATA.keys();
+		while(deviceKeys.hasNext()) {
+			String devKey = (String)deviceKeys.next();
+			int devEntryCount = TEAM_DATA.getJSONObject(devKey).getInt("entryCount");
+			while(i < devEntryCount) {
+				String jsonText = TEAM_DATA.getJSONObject(devKey).getString(i+"");
+				if(jsonText.equals(data)) {
+					//Don't save duplicates!
+					System.out.println(deviceIndex+" had "+devKey+'['+i+"]'s data! No duplicates!");
+					return;
+				}
+					i++;
 			}
-			i++;
 		}
 		deviceLocalTable.put(i+"", data);
 		deviceLocalTable.put("entryCount", deviceLocalTable.getInt("entryCount")+1);
-		System.out.println(deviceIndex+" had OC");
+		System.out.println(deviceIndex+" had  OC");
 		return;
-	}
-	public void updateDevice(RemoteDevice remDev, PrintWriter ex, BufferedReader in) {
-		
 	}
 
 }

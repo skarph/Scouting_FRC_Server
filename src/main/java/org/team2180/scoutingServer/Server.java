@@ -1,4 +1,6 @@
 package org.team2180.scoutingServer;
+import java.io.IOException;
+
 import javax.bluetooth.*;
 import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
@@ -10,7 +12,7 @@ import javax.bluetooth.UUID;;
 public class Server {
 	
 	public static final UUID serviceUUID = new UUID("94f39d297d6d437d973bfba39e49d4ee", false);
-	public static String connectionString = "btspp://localhost:" + serviceUUID.toString() +";name=Sample SPP Server";
+	public static String connectionString = "btspp://localhost:" + serviceUUID.toString() +";name=FRCScouting";
 	public static boolean serverStarted= false;
 	static LocalDevice locDev;//Lockdev monster
 	public static final JSONObject TEAM_DATA = new JSONObject();
@@ -19,20 +21,25 @@ public class Server {
 			
 			locDev = LocalDevice.getLocalDevice();
 			System.out.println("Local Device: '" + locDev.getFriendlyName()+"' @ "+locDev.getBluetoothAddress());
-			startServer();
+			StreamConnectionNotifier streamConnNot = startServer();
+			startListening(streamConnNot);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public static void startServer() throws Exception {
-		if(serverStarted){return;}
-		boolean isNowDiscoverable = locDev.setDiscoverable(DiscoveryAgent.GIAC);
-		System.out.println("Local Device Discoverable: "+Boolean.toString(isNowDiscoverable));
+	public static StreamConnectionNotifier startServer() throws Exception {
+		if(serverStarted){return null;}
+		boolean isNowDiscoverable = locDev.setDiscoverable(0x00);
+		System.out.println("Local Device is Discoverables: "+locDev.getDiscoverable());
 		System.out.println("Local Device URI: "+connectionString);
+		
 		StreamConnectionNotifier streamConnNot = (StreamConnectionNotifier) Connector.open(connectionString);
 		System.out.println("Server: Created, waiting for clients . . . ");
-		//SeverLoop
+		return streamConnNot;
+	}
+	
+	public static void startListening(StreamConnectionNotifier streamConnNot) throws IOException {
 		while(true) {
 			StreamConnection connection = streamConnNot.acceptAndOpen();
 			Thread connectedThread = new Thread(new ConnectionHandler(connection, TEAM_DATA));
