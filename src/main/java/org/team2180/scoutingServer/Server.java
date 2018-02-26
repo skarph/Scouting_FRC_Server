@@ -30,7 +30,7 @@ public class Server {
 	
 	public static StreamConnectionNotifier startServer() throws Exception {
 		if(serverStarted){return null;}
-		boolean isNowDiscoverable = locDev.setDiscoverable(0x00);
+		boolean isNowDiscoverable = locDev.setDiscoverable(DiscoveryAgent.GIAC);
 		System.out.println("Local Device is Discoverables: "+locDev.getDiscoverable());
 		System.out.println("Local Device URI: "+connectionString);
 		

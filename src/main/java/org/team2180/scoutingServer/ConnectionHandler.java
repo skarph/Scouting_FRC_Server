@@ -69,7 +69,7 @@ public class ConnectionHandler implements Runnable {
 		Iterator<?> deviceKeys = TEAM_DATA.keys();
 		while(deviceKeys.hasNext()) {
 			String devKey = (String)deviceKeys.next();
-			int devEntryCount = (int)TEAM_DATA.getJSONObject(deviceIndex).getInt("entryCount");
+			int devEntryCount = (int)TEAM_DATA.getJSONObject(devKey).getInt("entryCount");
 			int i = 0;
 			System.out.println(deviceIndex+" is now getting"+devKey+"'s stored data");
 			while(i < devEntryCount) {
@@ -94,7 +94,7 @@ public class ConnectionHandler implements Runnable {
 					i++;
 					oS.flush();
 			}
-		}
+		} 
 		oS.writeInt(0);//send term signal
 		oS.close();
 		System.out.println(deviceIndex+" is informed!");
