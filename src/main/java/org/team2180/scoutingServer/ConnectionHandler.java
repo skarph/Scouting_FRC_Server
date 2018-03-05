@@ -36,15 +36,14 @@ public class ConnectionHandler implements Runnable {
 	
 	@Override
 	public void run() {
-		// TODO Auto-generated method
+		
 		try {
 			System.out.println("Server: Found a friend in '"+remDev.getFriendlyName(true)+"' @ "+remDev.getBluetoothAddress());
-			OutputStream out = connection.openOutputStream();
-			InputStream in = connection.openInputStream();
-			DataOutputStream oS = new DataOutputStream(out);
-			DataInputStream iS = new DataInputStream(in); 
+			DataOutputStream oS = new DataOutputStream(connection.openOutputStream());
+			DataInputStream iS = new DataInputStream(connection.openInputStream()); 
 				
-			int handshake = in.read();
+			int handshake = iS.readInt();
+			
 			if(handshake==1) {
 				System.out.println(deviceIndex+" will now inform you of TOP SECRET_INFO");
 				updateDatabase(remDev, oS, iS);
@@ -53,6 +52,9 @@ public class ConnectionHandler implements Runnable {
 			}else if(handshake==2) {
 				System.out.println(deviceIndex+" would like to copy your notes");
 				updateDevice(remDev, oS, iS);
+				connection.close();
+			}else{
+				System.out.println(deviceIndex+" said: "+handshake+", not acceptable code");
 				connection.close();
 			}
 		} catch (Exception e) {
@@ -66,6 +68,7 @@ public class ConnectionHandler implements Runnable {
 	}
 
 	public void updateDevice(RemoteDevice remDev, DataOutputStream oS, DataInputStream iS) throws Exception {
+		
 		Iterator<?> deviceKeys = TEAM_DATA.keys();
 		while(deviceKeys.hasNext()) {
 			String devKey = (String)deviceKeys.next();
@@ -103,15 +106,10 @@ public class ConnectionHandler implements Runnable {
 	
 	public void updateDatabase(RemoteDevice remDev, DataOutputStream oS, DataInputStream iS) throws IOException, JSONException {
 		//OK!
-		oS.write(1);
+		oS.writeInt(2);
 		oS.flush();
-		byte[] charData = new byte[8192];
+		String data = iS.readUTF();
 		
-		iS.read(charData);
-		String data = new String(charData);
-		
-		connection.close();
-		//Connection should end here.
 		if(data!=null) {	
 		}
 		JSONObject deviceLocalTable;
@@ -140,14 +138,16 @@ public class ConnectionHandler implements Runnable {
 				if(jsonText.equals(data)) {
 					//Don't save duplicates!
 					System.out.println(deviceIndex+" had "+devKey+'['+i+"]'s data! No duplicates!");
+					oS.writeInt(1);
 					return;
 				}
 					i++;
 			}
 		}
+		connection.close();
 		deviceLocalTable.put(i+"", data);
 		deviceLocalTable.put("entryCount", deviceLocalTable.getInt("entryCount")+1);
-		System.out.println(deviceIndex+" had  OC");
+		System.out.println(deviceIndex+" had new OC");
 		return;
 	}
 
