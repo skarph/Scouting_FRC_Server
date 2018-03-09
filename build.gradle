@@ -8,6 +8,7 @@
 
 // Apply the java-library plugin to add support for Java Library
 apply plugin: 'java-library'
+apply plugin: 'maven'
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -31,6 +32,14 @@ dependencies {
 	compile group: 'org.json', name: 'json', version: '20090211'
     compile 'net.sf.bluecove:bluecove:2.1.0'
     compile 'net.sf.bluecove:bluecove-gpl:2.1.0'
-    compile 'net.sf.bluecove:bluecove:2.1.0'
 }
 
+jar {
+    manifest {
+        attributes "Main-Class": "org.team2180.scoutingServer.Server"
+    }
+ 
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
