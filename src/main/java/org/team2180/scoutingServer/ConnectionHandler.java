@@ -48,13 +48,15 @@ public class ConnectionHandler implements Runnable {
 				System.out.println(deviceIndex+" will now inform you of TOP SECRET_INFO");
 				updateDatabase(remDev, oS, iS);
 				int entryCount = TEAM_DATA.getJSONObject(deviceIndex).getInt("entryCount");
-				System.out.println(deviceIndex+" >\n"+ entryCount +"; "+Boolean.toString(TEAM_DATA.getJSONObject(deviceIndex).get((entryCount-1)+"")!=null));
 			}else if(handshake==2) {
 				System.out.println(deviceIndex+" would like to copy your notes");
 				updateDevice(remDev, oS, iS);
 				connection.close();
+			}else if(handshake==3) {
+				System.out.println(deviceIndex+" wants to see the teams we are viewing");
+				sendTeamList(remDev, oS, iS);
 			}else{
-				System.out.println(deviceIndex+" said: "+handshake+", not acceptable code");
+				System.out.println(deviceIndex+" said: "+handshake+"; not acceptable code");
 				connection.close();
 			}
 		} catch (Exception e) {
@@ -72,14 +74,14 @@ public class ConnectionHandler implements Runnable {
 		Iterator<?> deviceKeys = TEAM_DATA.keys();
 		while(deviceKeys.hasNext()) {
 			String devKey = (String)deviceKeys.next();
+			if(devKey.equals("__TEAMLIST__")) {continue;}
 			int devEntryCount = (int)TEAM_DATA.getJSONObject(devKey).getInt("entryCount");
 			int i = 0;
 			System.out.println(deviceIndex+" is now getting"+devKey+"'s stored data");
 			while(i < devEntryCount) {
 					oS.writeUTF(TEAM_DATA.getJSONObject(devKey).getString(i+""));
 					oS.flush();
-					System.out.println(TEAM_DATA.getJSONObject(devKey).getString(i+""));
-					int remReady = iS.readInt();//hangs here
+					int remReady = iS.readInt();
 					if(remReady != 2) {
 						connection.close();
 						throw new Exception(deviceIndex+" has refused the data at: "+devKey+'['+i+']'+"; responded with:"+remReady);
@@ -132,6 +134,7 @@ public class ConnectionHandler implements Runnable {
 		Iterator<?> deviceKeys = TEAM_DATA.keys();
 		while(deviceKeys.hasNext()) {
 			String devKey = (String)deviceKeys.next();
+			if(devKey.equals("__TEAMLIST__")) {continue;}
 			int devEntryCount = TEAM_DATA.getJSONObject(devKey).getInt("entryCount");
 			while(i < devEntryCount) {
 				String jsonText = TEAM_DATA.getJSONObject(devKey).getString(i+"");
@@ -150,5 +153,30 @@ public class ConnectionHandler implements Runnable {
 		System.out.println(deviceIndex+" had new OC");
 		return;
 	}
-
+	public void sendTeamList(RemoteDevice remDev, DataOutputStream oS, DataInputStream iS) throws Exception{
+		JSONArray teamList = TEAM_DATA.getJSONArray("__TEAMLIST__");
+		int i = 0;
+		while(i<teamList.length()) {
+			oS.writeUTF((String)teamList.get(i));
+			oS.flush();
+			System.out.println(deviceIndex+": "+(String)teamList.get(i));
+			System.out.println(deviceIndex+" has been sent a new team number!");
+				int remReady = iS.readInt();
+				if(remReady != 2) {
+					connection.close();
+					throw new Exception(deviceIndex+" has refused the data at: "+i+"; responded with:"+remReady);
+				}else{
+				}
+				if(i==teamList.length()-1) {
+					oS.writeInt(0);//send term signal
+				}else {
+					oS.writeInt(2);
+				}
+				i++;
+				oS.flush();
+		} 
+		oS.close();
+		System.out.println(deviceIndex+" can into team!");
+		connection.close();
+	}
 }
