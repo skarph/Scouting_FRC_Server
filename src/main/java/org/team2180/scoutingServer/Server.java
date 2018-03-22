@@ -75,7 +75,7 @@ public class Server {
 			return;
 		}
 		try {
-			TEAM_DATA = new JSONObject(Files.toString(loadData, Charset.defaultCharset()));
+			TEAM_DATA = new JSONObject(Files.asCharSource(loadData, Charset.defaultCharset()));
 		} catch (Exception err) {
 			err.printStackTrace();
 			System.out.println(HELP_INFO);
