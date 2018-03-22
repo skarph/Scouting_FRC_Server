@@ -22,10 +22,13 @@ dependencies {
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     api 'org.apache.commons:commons-math3:3.6.1'
 
+    // This dependency is used internally, and not exposed to consumers on their own compile classpath.
+    implementation 'com.google.guava:guava:23.0'
+
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
     // https://mvnrepository.com/artifact/org.json/json
-    compile group: 'com.google.guava', name: 'guava', version: '23.5-jre'
+    
 	compile group: 'org.json', name: 'json', version: '20090211'
     compile 'net.sf.bluecove:bluecove:2.1.0'
     compile 'net.sf.bluecove:bluecove-gpl:2.1.0'
