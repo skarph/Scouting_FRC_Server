@@ -80,6 +80,7 @@ public class Server {
 			err.printStackTrace();
 			System.out.println(HELP_INFO);
 			return;
+			
 		}
 		if(!saveAtConnection && saveTime!=-1.0) {
 			ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
