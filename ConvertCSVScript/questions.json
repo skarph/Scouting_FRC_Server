@@ -1,0 +1,29 @@
+{
+	"autoCan": "Does the team have an autonomous period?",
+	"autoLne": "Does autonomous cross the Base AutoLine?",
+	"autoScaleSucc": "Successful attempts to place Cubes onto Scale during Teleop",
+	"autoScaleUnSucc": "Unsuccessful attempts to place Cubes onto Scale during Teleop",
+	"autoSwiSucc": " Successful attempts to place Cubes onto Switch during Teleop",
+	"autoSwiUnSucc": "Unsuccessful attempts to place Cubes onto Switch during Teleop",
+
+	"teleopCubes": "Power-Up Cubes can be handled by Robot",
+	"teleopSwitch": "Short Switch can have cubes placed in it by Robot",
+	"teleopBalance": "Tall Balance can have cubes placed in it by Robot",
+	"teleopCubeFloor": "Cubes on the Floor can be manipulated by robot",
+	"teleopCubePerson": "Cubes can be loaded onto the robot via the Players' chutes",
+	"teleopCubesVault": "Cubes robot has inserted into the vault",
+	"teleopScaleSucc": " Successful attempts to place Cubes onto Scale during Teleop",
+	"teleopScaleUnSucc": "Unsuccessful attempts to place Cubes onto Scale during Teleop",
+	"teleopCubeChute": "Cubes loaded onto the robot via the Player's Chutes",
+	"teleopSwiSucc": "Successful attempts to place Cubes onto Switch during Teleop",
+	"teleopSwiUnSucc": " Unsuccessful attempts to place Cubes onto Switch during Teleop",
+	"teleopClimb": "[ENDGAME] Robot is able to Climb Tall Balance",
+	"teleopRoboClimb": "[ENDGAME] Robot is able to Climb Other Robots",
+	"teleopHadRamps": "[ENDGAME] Robot had Ramps",
+	"teleopUsedRamps": "[ENDGAME] Robot Used Ramps",
+	"teleopAwesome": "[ENDGAME] Robot can Carry other robots",
+
+	"miscPenalties": "Penalties Robot Incurred",
+	"miscDisabled": "Robot disabled",
+	"comments": "Comments"
+}
