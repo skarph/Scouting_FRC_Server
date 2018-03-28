@@ -126,31 +126,28 @@ public class ConnectionHandler implements Runnable {
 			deviceLocalTable = TEAM_DATA.getJSONObject(deviceIndex);
 			deviceLocalTable.put("0", data);
 			deviceLocalTable.put("entryCount", 1);
+			connection.close();
 			return;
 		}
 		
 		int i = 0;
 			//Make sure we don't have duplicates!
-		Iterator<?> deviceKeys = TEAM_DATA.keys();
-		while(deviceKeys.hasNext()) {
-			String devKey = (String)deviceKeys.next();
-			if(devKey.equals("__TEAMLIST__")) {continue;}
-			int devEntryCount = TEAM_DATA.getJSONObject(devKey).getInt("entryCount");
-			while(i < devEntryCount) {
-				String jsonText = TEAM_DATA.getJSONObject(devKey).getString(i+"");
-				if(jsonText.equals(data)) {
-					//Don't save duplicates!
-					System.out.println(deviceIndex+" had "+devKey+'['+i+"]'s data! No duplicates!");
-					oS.writeInt(1);
-					return;
-				}
-					i++;
+		int devEntryCount = deviceLocalTable.getInt("entryCount");
+		while(i < devEntryCount) {
+			String jsonText = deviceLocalTable.getString(i+"");
+			if(jsonText.equals(data)) {
+				//Don't save duplicates!
+				System.out.println(deviceIndex+" had a duplicate at ["+i+"] data! No duplicates!");
+				oS.writeInt(1);
+				return;
 			}
-		}
+				i++;
+			}
+		
 		connection.close();
-		deviceLocalTable.put(i+"", data);
+		System.out.println(deviceIndex+" had new OC, adding at["+deviceLocalTable.getInt("entryCount")+"]");
+		deviceLocalTable.put(Integer.toString(deviceLocalTable.getInt("entryCount")), data);
 		deviceLocalTable.put("entryCount", deviceLocalTable.getInt("entryCount")+1);
-		System.out.println(deviceIndex+" had new OC");
 		return;
 	}
 	public void sendTeamList(RemoteDevice remDev, DataOutputStream oS, DataInputStream iS) throws Exception{
@@ -159,8 +156,6 @@ public class ConnectionHandler implements Runnable {
 		while(i<teamList.length()) {
 			oS.writeUTF((String)teamList.get(i));
 			oS.flush();
-			System.out.println(deviceIndex+": "+(String)teamList.get(i));
-			System.out.println(deviceIndex+" has been sent a new team number!");
 				int remReady = iS.readInt();
 				if(remReady != 2) {
 					connection.close();
