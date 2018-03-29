@@ -1,6 +1,8 @@
 import json
 import csv
 import sys
+import os
+
 qList = None;
 outFile = None;
 jsonData = None;
@@ -57,7 +59,7 @@ for deviceName in jsonData:
                     if teamData[teamNum][teamData[teamNum]["__COUNT__"]][key]:
                         teamData[teamNum]["AVG"][key][0] += 1;
                     else:
-                        teamData[teamNum]["AVG"][key][0] -= 1;
+                        pass;
                 if type(teamData[teamNum][teamData[teamNum]["__COUNT__"]][key]) == int:
                     try:
                         test = teamData[teamNum]["AVG"][key];
@@ -82,15 +84,14 @@ for team in teamData:
         if type(teamData[team]["AVG"][element])==list:
             try:
                 if teamData[team]["AVG"][element][2] == bool:
-                    teamData[team]["AVG"][element] = str(teamData[team]["AVG"][element][0]) + "/" + str(teamData[team]["AVG"][element][1]);
+                    teamData[team]["AVG"][element] = str(round(float((teamData[team]["AVG"][element][0])/float(teamData[team]["AVG"][element][1]))*100,2))+"%";
                 else:
-                    teamData[team]["AVG"][element] = float(teamData[team]["AVG"][element][0]) / float(teamData[team]["AVG"][element][1]);
+                    teamData[team]["AVG"][element] = str(round(float(teamData[team]["AVG"][element][0]) / float(teamData[team]["AVG"][element][1]),2))+"/round";
             except IndexError:
                 pass;
             #
         #
      avgData[team] = teamData[team]["AVG"];
-print("\n");
 
 outWriter = csv.writer(outFile);
 outWriter.writerow(["Team ID"]+list(qList.values())+["Times Scouted"]);
